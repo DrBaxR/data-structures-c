@@ -1,6 +1,8 @@
 #include "ds.h"
+#include "util.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 Node* list_create(int *arr, int size) {
   Node *head = node_create(arr[0]);
@@ -53,6 +55,22 @@ void list_print(Node *head) {
     current = current->next;
   }
   printf(" NULL\n");
+}
+
+void list_to_string(char* buf, Node* head) {
+  strcpy(buf, "[");
+
+  Node* current = head;
+  while (current != NULL) {
+    char data_string[10];
+    int_to_string(data_string, current->data);
+    strcat(buf, data_string);
+    strcat(buf, ", ");
+    current = current->next;
+  }
+
+  buf[strlen(buf) - 2] = '\0';
+  strcat(buf, "]");
 }
 
 void list_free(Node *head) {

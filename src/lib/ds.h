@@ -12,6 +12,9 @@ Node* list_create(int *arr, int size);
 // print the linked list
 void list_print(Node *head);
 
+// returns a string representation of the list
+void list_to_string(char* buf, Node* head);
+
 // get a node from the list
 Node* list_get(Node *head, int index);
 
