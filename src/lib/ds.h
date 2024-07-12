@@ -1,15 +1,10 @@
 #ifndef __DS_H__
 #define __DS_H__
+// TODO: find out if there is any way you can make it so you have a single shared lib without having to have this huge file
 
 #include <stdbool.h>
-
-// stack data allocated memory grows in chunks, this is the chunk size
-#define STACK_CHUNK_SIZE 256
-
-typedef struct Node {
-  int data;
-  struct Node *next;
-} Node;
+#include "list.h"
+#include "stack.h"
 
 // create a new list from an array
 Node* list_create(int *arr, int size);
@@ -26,26 +21,8 @@ Node* list_get(Node *head, int index);
 // free the memory allocated for the linked list
 void list_free(Node *head);
 
-// create a new node for the linked list
-static Node* node_create(int data);
-
-// add a new node at the end of the linked list
-static void node_add(Node *head, int data);
-
-// free the memory allocated for the node
-static void node_free(Node *node);
-
-typedef struct Stack {
-  int *data;
-  int size;
-  int head; // next position to add element
-} Stack;
-
 // create a new empty stack
 Stack* stack_create();
-
-// expand memory allocated for data by STACK_CHUNK
-static Stack* stack_enlarge(Stack *stack);
 
 // free memory of a stack
 void stack_free(Stack *stack);
