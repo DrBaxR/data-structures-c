@@ -1,5 +1,5 @@
 LIBS_DIR=src/lib
-LIBS=$(LIBS_DIR)/ds.c $(LIBS_DIR)/util.c $(LIBS_DIR)/list.c $(LIBS_DIR)/stack.c
+LIBS=$(LIBS_DIR)/util.c $(LIBS_DIR)/list.c $(LIBS_DIR)/stack.c
 
 all: main
 

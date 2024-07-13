@@ -1,5 +1,6 @@
 #include<stdio.h>
-#include "lib/ds.h"
+#include "lib/list.h"
+#include "lib/stack.h"
 
 void list() {
     int arr[5] = {1, 2, 3, 4, 5};

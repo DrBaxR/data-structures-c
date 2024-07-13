@@ -13,30 +13,30 @@ typedef struct Stack {
 } Stack;
 
 // create a new empty stack
-Stack* s_stack_create();
+Stack* stack_create();
 
 // expand memory allocated for data by STACK_CHUNK
-Stack* s_stack_enlarge(Stack *stack);
+Stack* stack_enlarge(Stack *stack);
 
 // free memory of a stack
-void s_stack_free(Stack *stack);
+void stack_free(Stack *stack);
 
 // push element to the stack
-void s_stack_push(Stack *stack, int el);
+void stack_push(Stack *stack, int el);
 
 // pop element from the stack
-int s_stack_pop(Stack *stack);
+int stack_pop(Stack *stack);
 
 // transform stack to string in the character buffer passed as param
-void s_stack_to_string(char *buf, Stack *stack);
+void stack_to_string(char *buf, Stack *stack);
 
 // peek at the top element of the stack
-int s_stack_peek(Stack *stack);
+int stack_peek(Stack *stack);
 
 // true if is empty, false otherwise
-bool s_stack_is_empty(Stack *stack);
+bool stack_is_empty(Stack *stack);
 
 // number of elements in the stack
-int s_stack_size(Stack* stack);
+int stack_size(Stack* stack);
 
 #endif

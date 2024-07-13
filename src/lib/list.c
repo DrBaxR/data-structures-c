@@ -5,22 +5,22 @@
 #include "list.h"
 #include "util.h"
 
-Node* l_list_create(int *arr, int size) {
-  Node *head = l_node_create(arr[0]);
+Node* list_create(int *arr, int size) {
+  Node *head = node_create(arr[0]);
   for (int i = 1; i < size; i++) {
-    l_node_add(head, arr[i]);
+    node_add(head, arr[i]);
   }
   return head;
 }
 
-Node* l_node_create(int data) {
+Node* node_create(int data) {
   Node *node = (Node *)malloc(sizeof(Node));
   node->data = data;
   node->next = NULL;
   return node;
 }
 
-Node* l_list_get(Node *head, int index) {
+Node* list_get(Node *head, int index) {
   Node *current = head;
   int i = 0;
 
@@ -36,12 +36,12 @@ Node* l_list_get(Node *head, int index) {
   return NULL;
 }
 
-void l_node_free(Node *node) {
+void node_free(Node *node) {
   free(node);
 }
 
-void l_node_add(Node *head, int data) {
-  Node *new_node = l_node_create(data);
+void node_add(Node *head, int data) {
+  Node *new_node = node_create(data);
   Node *current = head;
   while (current->next != NULL) {
     current = current->next;
@@ -49,7 +49,7 @@ void l_node_add(Node *head, int data) {
   current->next = new_node;
 }
 
-void l_list_print(Node *head) {
+void list_print(Node *head) {
   Node *current = head;
   while (current != NULL) {
     printf(" |%d| ->", current->data);
@@ -58,7 +58,7 @@ void l_list_print(Node *head) {
   printf(" NULL\n");
 }
 
-void l_list_to_string(char* buf, Node* head) {
+void list_to_string(char* buf, Node* head) {
   strcpy(buf, "[");
 
   Node* current = head;
@@ -74,11 +74,11 @@ void l_list_to_string(char* buf, Node* head) {
   strcat(buf, "]");
 }
 
-void l_list_free(Node *head) {
+void list_free(Node *head) {
   Node *current = head;
   while (current != NULL) {
     Node *next = current->next;
-    l_node_free(current);
+    node_free(current);
     current = next;
   }
 }
