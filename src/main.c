@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include "lib/list.h"
 #include "lib/stack.h"
+#include "lib/btree.h"
 
 void list() {
     int arr[5] = {1, 2, 3, 4, 5};
@@ -40,8 +41,15 @@ void stack() {
     stack_free(stack);
 }
 
+void b_tree() {
+    printf("TODO\n");
+    printf("Search\n");
+    printf("Insert\n");
+    printf("Delete\n");
+}
+
 int main() {
-    stack();
+    b_tree();
 
     return 0;
 }
