@@ -8,7 +8,7 @@ typedef struct BTree {
 
 typedef struct BTreeNode {
     struct BTreeNode *left_child;
-    struct BTreeNodeEntry *data;    // array of entries
+    struct BTreeNodeEntry **data;    // array of entries
     int len;                        // current length of data in node
 } BTreeNode;
 
@@ -17,5 +17,13 @@ typedef struct BTreeNodeEntry {
     int record;                     // actual data stored in the entry
     int key;                        // unique identifier used to search for entry
 } BTreeNodeEntry;
+
+BTree* btree_create(int order);
+
+BTreeNodeEntry* btree_search(BTreeNode *tree_root, int key);
+
+static BTreeNodeEntry* _btree_node_search(BTreeNode *node, int key);
+
+void btree_free(BTree *tree);
 
 #endif

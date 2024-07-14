@@ -42,10 +42,11 @@ void stack() {
 }
 
 void b_tree() {
-    printf("TODO\n");
-    printf("Search\n");
-    printf("Insert\n");
-    printf("Delete\n");
+    BTree *tree = btree_create(3);
+
+    printf("Search: %p\n", btree_search(tree->root, 69));
+    printf("Insert: TODO\n");
+    printf("Delete: TODO\n");
 }
 
 int main() {
