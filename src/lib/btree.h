@@ -8,7 +8,7 @@ typedef struct BTree {
 
 typedef struct BTreeNode {
     struct BTreeNode *left_child;
-    struct BTreeNodeEntry **data;    // array of entries
+    struct BTreeNodeEntry **data;   // array of entries
     int len;                        // current length of data in node
 } BTreeNode;
 
@@ -37,6 +37,10 @@ BTreeNodeEntry* btree_search(BTreeNode *tree_root, int key);
 BTreeNodeEntry* _btree_node_search(BTreeNode *node, int key);
 
 void btree_insert(BTree *tree, BTreeNodeEntry *entry);
+
+// insert entry into the array of data in a node, without rebalancing
+// does NOT check if node is FULL before inserting
+void _btree_node_insert_sorted(BTreeNode *node, BTreeNodeEntry *entry, int order);
 
 // find leaf in which entry should be inserted into
 BTreeNode* _btree_find_insertion_leaf(BTreeNode *tree_root, BTreeNodeEntry *entry);

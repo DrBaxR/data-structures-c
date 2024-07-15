@@ -85,13 +85,35 @@ void btree_insert(BTree *tree, BTreeNodeEntry *entry) {
     // search for the leaf node where new element belongs into
     BTreeNode *node_to_insert_into = _btree_find_insertion_leaf(tree->root, entry);
 
-    // TODO
     // insert new element into the node
+    _btree_node_insert_sorted(node_to_insert_into, entry, tree->order);
     //      1. node.elements < max => insert element in the node, keeping order
+    if (node_to_insert_into->len < tree->order) {
+        return;
+    }
     //      2. node is full => split node in two nodes:
+    // TODO
     //          1. pick median element
     //          2. values less than the median put in left node, greater into right
     //          3. median element inserted into parent, which may cause it to be split and so on. if node has no parent, create a new root above node
+}
+
+void _btree_node_insert_sorted(BTreeNode *node, BTreeNodeEntry *entry, int order) {
+    int greater_index = _btree_node_get_greater_index(node, entry->key);
+
+    if (greater_index == -1) {
+        node->data[0] = entry;
+        node->len = 1;
+
+        return;
+    }
+
+    for (int i = greater_index + 1; i <= order; i++) {
+        node->data[i] = node->data[i - 1];
+    }
+
+    node->len++;
+    node->data[greater_index] = entry;
 }
 
 BTreeNode* _btree_find_insertion_leaf(BTreeNode *tree_root, BTreeNodeEntry *entry) {

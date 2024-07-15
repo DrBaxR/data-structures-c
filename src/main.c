@@ -41,10 +41,23 @@ void stack() {
     stack_free(stack);
 }
 
-void b_tree() {
+BTree* create_sample_tree() {
     BTree *tree = btree_create(3);
+    BTreeNodeEntry *entry = _btree_node_entry_create(69, 12);
+    BTreeNodeEntry *entry2 = _btree_node_entry_create(420, 8);
 
-    printf("Search: %p\n", btree_search(tree->root, 69));
+    // only using this until insertion algorithm is fully implemented
+    _btree_node_insert_sorted(tree->root, entry, tree->order);
+    _btree_node_insert_sorted(tree->root, entry2, tree->order);
+
+    return tree;
+}
+
+void b_tree() {
+    BTree *tree = create_sample_tree();
+
+    printf("Search: %d\n", btree_search(tree->root, 12)->record);
+    printf("%d\n", _btree_node_get_greater_index(tree->root, 10));
     printf("Insert: TODO\n");
     printf("Delete: TODO\n");
 }
