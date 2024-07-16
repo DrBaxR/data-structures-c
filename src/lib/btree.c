@@ -85,17 +85,40 @@ void btree_insert(BTree *tree, BTreeNodeEntry *entry) {
     // search for the leaf node where new element belongs into
     BTreeNode *node_to_insert_into = _btree_find_insertion_leaf(tree->root, entry);
 
+    BTreeNode *node_to_insert_into_parent = NULL; // TODO
+    _btree_node_insert_with_rebalance(node_to_insert_into_parent, node_to_insert_into, entry, tree->order);
+}
+
+void _btree_node_insert_with_rebalance(BTreeNode *parent, BTreeNode *node, BTreeNodeEntry *entry, int order) {
     // insert new element into the node
-    _btree_node_insert_sorted(node_to_insert_into, entry, tree->order);
+    _btree_node_insert_sorted(node, entry, order);
+
     //      1. node.elements < max => insert element in the node, keeping order
-    if (node_to_insert_into->len < tree->order) {
+    if (node->len < order) {
         return;
     }
+
     //      2. node is full => split node in two nodes:
-    // TODO
     //          1. pick median element
+    BTreeNodeEntry *median = _btree_node_remove_median_entry(node);
     //          2. values less than the median put in left node, greater into right
+    BTreeNode *right = _btree_node_create(order);
+    for (int i = node->len / 2; i < node->len; i++) {
+        right->data[i - node->len / 2] = node->data[i];
+        right->len++;
+    }
+
+    node->len = node->len / 2;
+    BTreeNodeEntry *left = node;
+
     //          3. median element inserted into parent, which may cause it to be split and so on. if node has no parent, create a new root above node
+    // TODO: we have two nodes - left and right + an entry median that needs to be inserted in the parent
+    // insert median into parent
+    // find where median fits into parent - greater index
+    // insert element between index - 1 and index
+    // index-1.right = *left
+    // index.right = *right
+    // TODO: should think of a recursive way of doing this
 }
 
 void _btree_node_insert_sorted(BTreeNode *node, BTreeNodeEntry *entry, int order) {
@@ -114,6 +137,20 @@ void _btree_node_insert_sorted(BTreeNode *node, BTreeNodeEntry *entry, int order
 
     node->len++;
     node->data[greater_index] = entry;
+}
+
+BTreeNodeEntry* _btree_node_remove_median_entry(BTreeNode *node) {
+    BTreeNodeEntry *median_element = node->data[node->len / 2];
+
+    for (int i = node->len / 2; i < node->len - 1; i++) {
+        node->data[i] = node->data[i + 1];
+    }
+    node->len--;
+
+    BTreeNodeEntry *median_clone = _btree_node_entry_create(median_element->record, median_element->key);
+    _btree_node_entry_free(median_element);
+
+    return median_clone;
 }
 
 BTreeNode* _btree_find_insertion_leaf(BTreeNode *tree_root, BTreeNodeEntry *entry) {

@@ -38,9 +38,17 @@ BTreeNodeEntry* _btree_node_search(BTreeNode *node, int key);
 
 void btree_insert(BTree *tree, BTreeNodeEntry *entry);
 
+// insert entry into node that has parent in a tree of order
+void _btree_node_insert_with_rebalance(BTreeNode *parent, BTreeNode *node, BTreeNodeEntry *entry, int order);
+
 // insert entry into the array of data in a node, without rebalancing
 // does NOT check if node is FULL before inserting
 void _btree_node_insert_sorted(BTreeNode *node, BTreeNodeEntry *entry, int order);
+
+// remove median entry of the node and return it (median entry returned is newly allocated, not the actual one)
+// also frees memory for the entry that was removed
+// should only be used when node data elements has an odd number of entries
+BTreeNodeEntry* _btree_node_remove_median_entry(BTreeNode *node);
 
 // find leaf in which entry should be inserted into
 BTreeNode* _btree_find_insertion_leaf(BTreeNode *tree_root, BTreeNodeEntry *entry);
