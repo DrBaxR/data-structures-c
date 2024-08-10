@@ -43,23 +43,56 @@ void stack() {
 
 BTree* create_sample_tree() {
     BTree *tree = btree_create(3);
-    BTreeNodeEntry *entry = _btree_node_entry_create(69, 12);
-    BTreeNodeEntry *entry2 = _btree_node_entry_create(420, 8);
+    // TODO: refinement and optimizations
+    BTreeNodeEntry *entry = _btree_node_entry_create(69, 1);
+    BTreeNodeEntry *entry2 = _btree_node_entry_create(420, 2);
+    BTreeNodeEntry *entry3 = _btree_node_entry_create(1337, 3);
+    BTreeNodeEntry *entry4 = _btree_node_entry_create(455, 4);
+    BTreeNodeEntry *entry5 = _btree_node_entry_create(980, 5);
+    BTreeNodeEntry *entry6 = _btree_node_entry_create(123, 6);
+    BTreeNodeEntry *entry7 = _btree_node_entry_create(845, 7);
 
-    // only using this until insertion algorithm is fully implemented
-    _btree_node_insert_sorted(tree->root, entry, tree->order);
-    _btree_node_insert_sorted(tree->root, entry2, tree->order);
+    btree_insert(tree, entry);
+    printf("--------------------------\n");
+    printf("1 insert\n");
+    print_tree(tree->root);
+    printf("--------------------------\n");
+
+    btree_insert(tree, entry2);
+    printf("2 insert\n");
+    print_tree(tree->root);
+    printf("--------------------------\n");
+
+    btree_insert(tree, entry3);
+    printf("3 insert\n");
+    print_tree(tree->root);
+    printf("--------------------------\n");
+
+    btree_insert(tree, entry4);
+    printf("4 insert\n");
+    print_tree(tree->root);
+    printf("--------------------------\n");
+
+    btree_insert(tree, entry5);
+    printf("5 insert\n");
+    print_tree(tree->root);
+    printf("--------------------------\n");
+
+    btree_insert(tree, entry6);
+    printf("6 insert\n");
+    print_tree(tree->root);
+    printf("--------------------------\n");
+
+    btree_insert(tree, entry7);
+    printf("7 insert\n");
+    print_tree(tree->root);
+    printf("--------------------------\n");
 
     return tree;
 }
 
 void b_tree() {
     BTree *tree = create_sample_tree();
-
-    printf("Search: %d\n", btree_search(tree->root, 12)->record);
-    printf("%d\n", _btree_node_get_greater_index(tree->root, 10));
-    printf("Insert: TODO\n");
-    printf("Delete: TODO\n");
 }
 
 int main() {

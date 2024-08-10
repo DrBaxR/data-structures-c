@@ -85,23 +85,116 @@ void btree_insert(BTree *tree, BTreeNodeEntry *entry) {
     // search for the leaf node where new element belongs into
     BTreeNode *node_to_insert_into = _btree_find_insertion_leaf(tree->root, entry);
 
-    BTreeNode *node_to_insert_into_parent = NULL; // TODO
-    _btree_node_insert_with_rebalance(node_to_insert_into_parent, node_to_insert_into, entry, tree->order);
+    BTreeNode *node_to_insert_into_parent = _btree_get_node_parent(tree->root, NULL, node_to_insert_into);
+    _btree_node_insert_with_rebalance(tree, node_to_insert_into, entry, tree->order);
 }
 
-void _btree_node_insert_with_rebalance(BTreeNode *parent, BTreeNode *node, BTreeNodeEntry *entry, int order) {
-    // insert new element into the node
-    _btree_node_insert_sorted(node, entry, order);
+BTreeNode* _btree_get_node_parent(BTreeNode *root, BTreeNode *parent, BTreeNode *node) {
+    if (root == node) {
+        return parent;
+    }
 
-    //      1. node.elements < max => insert element in the node, keeping order
-    if (node->len < order) {
+    if (root == NULL) {
+        return (BTreeNode*) B_TREE_PARENT_NOT_FOUND;
+    }
+
+
+    BTreeNode *potential_parent = _btree_get_node_parent(root->left_child, root, node);
+    if (potential_parent != (BTreeNode*) B_TREE_PARENT_NOT_FOUND) {
+        return potential_parent;
+    }
+
+    for (int i = 0; i < root->len; i++) {
+        potential_parent = _btree_get_node_parent(root->data[i]->right_child, root, node);
+        if (potential_parent != (BTreeNode*) B_TREE_PARENT_NOT_FOUND) {
+            return potential_parent;
+        }
+    }
+
+    return (BTreeNode*) B_TREE_PARENT_NOT_FOUND;
+}
+
+void _btree_node_insert_with_rebalance(BTree *tree, BTreeNode *node, BTreeNodeEntry *entry, int order) {
+    BTreeInsertionSplit *is = insert_with_potential_split(node, entry, order);
+
+    // no split for node
+    if (is == NULL) {
         return;
     }
 
-    //      2. node is full => split node in two nodes:
-    //          1. pick median element
+    // median element inserted into parent, which may cause it to be split and so on. if node has no parent, create a new root above node
+    while (is->split_node != tree->root) {
+        // if not root, call insert in parent with potential split
+        BTreeInsertionSplit *old_is = is;
+        is = insert_in_parent_with_potential_split(tree, is->split_node, is->median, is->left, is->right);
+        // TODO: check why this is invalid pointer in case of 7 inserts (root split)
+        // _btree_insertion_split_free(old_is);
+
+        if (is == NULL) {
+            // parent was not split, we are done; otherwise continue
+            return;
+        }
+    }
+
+    // if root, allocate new node and insert median in there (we only get here if `is->split_node` contains the root of the tree)
+    BTreeNode *new_root = _btree_node_create(tree->order);
+    is->median->right_child = is->right;
+    new_root->left_child = is->left;
+    _btree_node_insert_sorted(new_root, is->median, tree->order);
+
+    // TODO: check why this is invalid pointer in case of 5 inserts
+    // _btree_insertion_split_free(is);
+
+    tree->root = new_root;
+}
+
+// insert an entry into the parent of the node, setting the node's left and right neighbors
+// return NULL if parent doesn't split
+// return BTreeInsertionSplit if parent did split => caller needs to insert new median in parent of the parent
+// NOTE: to be used for non-leaf nodes
+BTreeInsertionSplit* insert_in_parent_with_potential_split(BTree *tree, BTreeNode* original_node, BTreeNodeEntry *entry_to_insert, BTreeNode *entry_left, BTreeNode *entry_right) {
+    // find parent of original_node
+    BTreeNode *parent = _btree_get_node_parent(tree->root, NULL, original_node);
+
+    // insert entry_to_insert into parent =>
+    int median_index = _btree_node_insert_sorted(parent, entry_to_insert, tree->order);
+
+    // arrange child pointers where median was inserted
+    entry_to_insert->right_child = entry_right;
+    if (median_index == 0) {
+        parent->left_child = entry_left;
+    } else {
+        parent->data[median_index - 1]->right_child = entry_left;
+    }
+
+    //      1. node had enough space in it (return nothing)
+    if (parent->len < tree->order) {
+        return NULL;
+    }
+
+    //      2. node did not have enough space, so it split (return left, right, new_entry_to_insert)
+    return split_node(parent, tree->order);
+}
+
+// insert entry into node and return NULL if node did not split and BTreeInsertionSplit* if did split
+// if split: left remains original node (just data is mutated), right is a new node that gets created
+// NOTE: only to be used for leaf nodes
+BTreeInsertionSplit* insert_with_potential_split(BTreeNode *node, BTreeNodeEntry *entry, int order) {
+    _btree_node_insert_sorted(node, entry, order);
+
+    if (node->len < order) {
+        return NULL;
+    }
+
+    return split_node(node, order);
+}
+
+// splits node for a tree of order
+// ASSUMES that the node NEEDS to be split (has order elements)
+// allocates memory for BTreeInsertionSplit
+BTreeInsertionSplit* split_node(BTreeNode *node, int order) {
     BTreeNodeEntry *median = _btree_node_remove_median_entry(node);
-    //          2. values less than the median put in left node, greater into right
+
     BTreeNode *right = _btree_node_create(order);
     for (int i = node->len / 2; i < node->len; i++) {
         right->data[i - node->len / 2] = node->data[i];
@@ -109,26 +202,35 @@ void _btree_node_insert_with_rebalance(BTreeNode *parent, BTreeNode *node, BTree
     }
 
     node->len = node->len / 2;
-    BTreeNodeEntry *left = node;
+    BTreeNode *left = node;
 
-    //          3. median element inserted into parent, which may cause it to be split and so on. if node has no parent, create a new root above node
-    // TODO: we have two nodes - left and right + an entry median that needs to be inserted in the parent
-    // insert median into parent
-    // find where median fits into parent - greater index
-    // insert element between index - 1 and index
-    // index-1.right = *left
-    // index.right = *right
-    // TODO: should think of a recursive way of doing this
+    BTreeInsertionSplit *is = _btree_insertion_split_create(left, right, median, node);
+    return is;
 }
 
-void _btree_node_insert_sorted(BTreeNode *node, BTreeNodeEntry *entry, int order) {
+BTreeInsertionSplit* _btree_insertion_split_create(BTreeNode *left, BTreeNode *right, BTreeNodeEntry *median, BTreeNode *split_node) {
+    BTreeInsertionSplit *is = (BTreeInsertionSplit*) malloc(sizeof(BTreeInsertionSplit));
+
+    is->left = left;
+    is->right = right;
+    is->median = median;
+    is->split_node = split_node;
+
+    return is;
+}
+
+void _btree_insertion_split_free(BTreeInsertionSplit *is) {
+    free(is);
+}
+
+int _btree_node_insert_sorted(BTreeNode *node, BTreeNodeEntry *entry, int order) {
     int greater_index = _btree_node_get_greater_index(node, entry->key);
 
     if (greater_index == -1) {
         node->data[0] = entry;
         node->len = 1;
 
-        return;
+        return 0;
     }
 
     for (int i = greater_index + 1; i <= order; i++) {
@@ -137,6 +239,9 @@ void _btree_node_insert_sorted(BTreeNode *node, BTreeNodeEntry *entry, int order
 
     node->len++;
     node->data[greater_index] = entry;
+
+    return greater_index;
+    return 0;
 }
 
 BTreeNodeEntry* _btree_node_remove_median_entry(BTreeNode *node) {
@@ -165,6 +270,10 @@ BTreeNode* _btree_find_insertion_leaf(BTreeNode *tree_root, BTreeNodeEntry *entr
     }
 
     BTreeNode *insertion_child = tree_root->left_child;
+    if (insertion_child == NULL) {
+        return tree_root;
+    }
+
     if (greater_index > 0) {
         // insert in child between lesser element and greater element
         return _btree_find_insertion_leaf(tree_root->data[greater_index - 1]->right_child, entry);
@@ -188,6 +297,10 @@ int _btree_node_get_greater_index(BTreeNode *node, int key) {
 }
 
 int _btree_node_is_leaf(BTreeNode *node) {
+    if (node->left_child != NULL) {
+        return 0;
+    }
+
     for (int i = 0; i < node->len; i++) {
         if (node->data[i] != NULL) {
             return 0;
@@ -196,4 +309,24 @@ int _btree_node_is_leaf(BTreeNode *node) {
 
     // all children are NULL
     return 1;
+}
+
+void print_tree(BTreeNode *root) {
+    if (root == NULL) {
+        return;
+    }
+
+    printf("%p\n", root);
+    printf("%p <- |", root->left_child);
+    for (int i = 0; i < root->len; i++) {
+        printf(" [%d] (%d) -> '%p' |", root->data[i]->key, root->data[i]->record, root->data[i]->right_child);
+    }
+    printf("\n\n");
+
+    print_tree(root->left_child);
+    for (int i = 0; i < root->len; i++) {
+        print_tree(root->data[i]->right_child);
+    }
+
+    printf("\n");
 }
