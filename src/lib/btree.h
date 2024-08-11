@@ -56,12 +56,21 @@ BTreeNode* _btree_get_node_parent(BTreeNode *root, BTreeNode *parent, BTreeNode 
 // also mutates tree if the root changes
 void _btree_node_insert_with_rebalance(BTree *tree, BTreeNode *node, BTreeNodeEntry *entry, int order);
 
-// TODO: move descriptions here
-BTreeInsertionSplit* insert_in_parent_with_potential_split(BTree *tree, BTreeNode* original_node, BTreeNodeEntry *entry_to_insert, BTreeNode *entry_left, BTreeNode *entry_right);
+// insert an entry into the parent of the node, setting the node's left and right neighbors
+// return NULL if parent doesn't split
+// return BTreeInsertionSplit if parent did split => caller needs to insert new median in parent of the parent
+// NOTE: to be used for non-leaf nodes
+BTreeInsertionSplit* _btree_node_insert_in_parent_with_potential_split(BTree *tree, BTreeNode* original_node, BTreeNodeEntry *entry_to_insert, BTreeNode *entry_left, BTreeNode *entry_right);
 
-BTreeInsertionSplit* insert_with_potential_split(BTreeNode *node, BTreeNodeEntry *entry, int order);
+// insert entry into node and return NULL if node did not split and BTreeInsertionSplit* if did split
+// if split: left remains original node (just data is mutated), right is a new node that gets created
+// NOTE: only to be used for leaf nodes
+BTreeInsertionSplit* _btree_node_insert_with_potential_split(BTreeNode *node, BTreeNodeEntry *entry, int order);
 
-BTreeInsertionSplit* split_node(BTreeNode *node, int order);
+// splits node for a tree of order
+// ASSUMES that the node NEEDS to be split (has order elements)
+// allocates memory for BTreeInsertionSplit
+BTreeInsertionSplit* _btree_node_split(BTreeNode *node, int order);
 
 BTreeInsertionSplit* _btree_insertion_split_create(BTreeNode *left, BTreeNode *right, BTreeNodeEntry *median, BTreeNode *split_node);
 

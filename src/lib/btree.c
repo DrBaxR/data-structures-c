@@ -115,7 +115,7 @@ BTreeNode* _btree_get_node_parent(BTreeNode *root, BTreeNode *parent, BTreeNode 
 }
 
 void _btree_node_insert_with_rebalance(BTree *tree, BTreeNode *node, BTreeNodeEntry *entry, int order) {
-    BTreeInsertionSplit *is = insert_with_potential_split(node, entry, order);
+    BTreeInsertionSplit *is = _btree_node_insert_with_potential_split(node, entry, order);
 
     // no split for node
     if (is == NULL) {
@@ -126,7 +126,7 @@ void _btree_node_insert_with_rebalance(BTree *tree, BTreeNode *node, BTreeNodeEn
     while (is->split_node != tree->root) {
         // if not root, call insert in parent with potential split
         BTreeInsertionSplit *old_is = is;
-        is = insert_in_parent_with_potential_split(tree, is->split_node, is->median, is->left, is->right);
+        is = _btree_node_insert_in_parent_with_potential_split(tree, is->split_node, is->median, is->left, is->right);
         // TODO: check why this is invalid pointer in case of 7 inserts (root split)
         // _btree_insertion_split_free(old_is);
 
@@ -148,11 +148,7 @@ void _btree_node_insert_with_rebalance(BTree *tree, BTreeNode *node, BTreeNodeEn
     tree->root = new_root;
 }
 
-// insert an entry into the parent of the node, setting the node's left and right neighbors
-// return NULL if parent doesn't split
-// return BTreeInsertionSplit if parent did split => caller needs to insert new median in parent of the parent
-// NOTE: to be used for non-leaf nodes
-BTreeInsertionSplit* insert_in_parent_with_potential_split(BTree *tree, BTreeNode* original_node, BTreeNodeEntry *entry_to_insert, BTreeNode *entry_left, BTreeNode *entry_right) {
+BTreeInsertionSplit* _btree_node_insert_in_parent_with_potential_split(BTree *tree, BTreeNode* original_node, BTreeNodeEntry *entry_to_insert, BTreeNode *entry_left, BTreeNode *entry_right) {
     // find parent of original_node
     BTreeNode *parent = _btree_get_node_parent(tree->root, NULL, original_node);
 
@@ -173,26 +169,20 @@ BTreeInsertionSplit* insert_in_parent_with_potential_split(BTree *tree, BTreeNod
     }
 
     //      2. node did not have enough space, so it split (return left, right, new_entry_to_insert)
-    return split_node(parent, tree->order);
+    return _btree_node_split(parent, tree->order);
 }
 
-// insert entry into node and return NULL if node did not split and BTreeInsertionSplit* if did split
-// if split: left remains original node (just data is mutated), right is a new node that gets created
-// NOTE: only to be used for leaf nodes
-BTreeInsertionSplit* insert_with_potential_split(BTreeNode *node, BTreeNodeEntry *entry, int order) {
+BTreeInsertionSplit* _btree_node_insert_with_potential_split(BTreeNode *node, BTreeNodeEntry *entry, int order) {
     _btree_node_insert_sorted(node, entry, order);
 
     if (node->len < order) {
         return NULL;
     }
 
-    return split_node(node, order);
+    return _btree_node_split(node, order);
 }
 
-// splits node for a tree of order
-// ASSUMES that the node NEEDS to be split (has order elements)
-// allocates memory for BTreeInsertionSplit
-BTreeInsertionSplit* split_node(BTreeNode *node, int order) {
+BTreeInsertionSplit* _btree_node_split(BTreeNode *node, int order) {
     BTreeNodeEntry *median = _btree_node_remove_median_entry(node);
 
     BTreeNode *right = _btree_node_create(order);
