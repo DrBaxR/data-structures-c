@@ -125,10 +125,9 @@ void _btree_node_insert_with_rebalance(BTree *tree, BTreeNode *node, BTreeNodeEn
     // median element inserted into parent, which may cause it to be split and so on. if node has no parent, create a new root above node
     while (is->split_node != tree->root) {
         // if not root, call insert in parent with potential split
-        BTreeInsertionSplit *old_is = is;
-        is = _btree_node_insert_in_parent_with_potential_split(tree, is->split_node, is->median, is->left, is->right);
-        // TODO: check why this is invalid pointer in case of 7 inserts (root split)
-        // _btree_insertion_split_free(old_is);
+        BTreeInsertionSplit *new_is = _btree_node_insert_in_parent_with_potential_split(tree, is->split_node, is->median, is->left, is->right);
+        // _btree_insertion_split_free(is);
+        is = new_is;
 
         if (is == NULL) {
             // parent was not split, we are done; otherwise continue
@@ -142,7 +141,7 @@ void _btree_node_insert_with_rebalance(BTree *tree, BTreeNode *node, BTreeNodeEn
     new_root->left_child = is->left;
     _btree_node_insert_sorted(new_root, is->median, tree->order);
 
-    // TODO: check why this is invalid pointer in case of 5 inserts
+    // TODO: check why this is invalid pointer in case of 7 inserts (root split)
     // _btree_insertion_split_free(is);
 
     tree->root = new_root;
